@@ -2,7 +2,7 @@
 
 ## Purpose
 
-AI-powered customer support agent for a UK-based junk removal business called Consolices. The agent handles inbound customer queries via a web chat interface. It uses Claude (Anthropic) with tool use to look up customer orders and search a FAQ knowledge base. It escalates to a human when it cannot resolve the query.
+AI-powered customer support agent for a UK-based junk removal business called ClearAway. The agent handles inbound customer queries via a web chat interface. It uses Claude (Anthropic) with tool use to look up customer orders and search a FAQ knowledge base. It escalates to a human when it cannot resolve the query.
 
 ## Tech Stack
 
