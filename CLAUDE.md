@@ -8,7 +8,7 @@ AI-powered customer support agent for a UK-based junk removal business called Cl
 
 - **Frontend:** React + Vite (JavaScript, no TypeScript), plain CSS
 - **Backend:** Node.js + Express
-- **AI Model:** Anthropic Claude API (`claude-sonnet-4-5-20251022`) with tool use
+- **AI Model:** Anthropic Claude API (`claude-sonnet-4-5-20250929`) with tool use
 - **Embeddings:** Voyage AI `voyage-3-lite` (`voyageai` npm package)
 - **Logging:** JSONL append-only file (`backend/logs/conversations.jsonl`)
 - **Mock data:** JSON files (no real database)
@@ -52,7 +52,7 @@ AI-powered customer support agent for a UK-based junk removal business called Cl
 5. **JSONL logging:** Log once per completed turn — after the tool loop finishes and the final reply is ready. One JSON line per turn. Never log during the loop.
 6. **CORS:** Backend must allow requests from `http://localhost:5173`.
 7. **Escalation tag:** When Claude needs to escalate, it appends `[ESCALATE: reason]` on a new line. The server parses this tag, sets `escalated: true`, and includes `escalationReason` in the response to the frontend.
-8. **Model string:** Always `claude-sonnet-4-6`. Never change this.
+8. **Model string:** Always `claude-sonnet-4-5-20250929`. Never change this.
 
 ## Commands
 ```bash

@@ -67,7 +67,7 @@ app.post('/chat', async (req, res) => {
 
     // Tool use loop
     let response = await client.messages.create({
-      model: 'claude-sonnet-4-6',
+      model: 'claude-sonnet-4-5-20250929',
       max_tokens: 1024,
       system: systemPrompt,
       tools: toolDefinitions,
@@ -92,7 +92,7 @@ app.post('/chat', async (req, res) => {
       session.messages.push({ role: 'user', content: toolResults });
 
       response = await client.messages.create({
-        model: 'claude-sonnet-4--5-20251022',
+        model: 'claude-sonnet-4-5-20250929',
         max_tokens: 1024,
         system: systemPrompt,
         tools: toolDefinitions,
