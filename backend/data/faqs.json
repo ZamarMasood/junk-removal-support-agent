@@ -1,0 +1,77 @@
+[
+  {
+    "id": "FAQ-001",
+    "question": "How do I reschedule a collection?",
+    "answer": "You can reschedule your collection free of charge up to 24 hours before your booked time slot. Just give us a ring or drop us a message through the chat and we'll sort out a new date for you."
+  },
+  {
+    "id": "FAQ-002",
+    "question": "Can I add extra items on the day of collection?",
+    "answer": "Yes, our crew can usually take additional items on the day as long as there's space on the van. There may be a small extra charge depending on the size and volume, which the driver will confirm before loading."
+  },
+  {
+    "id": "FAQ-003",
+    "question": "How do I get a copy of my invoice?",
+    "answer": "We email your invoice automatically once the collection is complete. If you haven't received it, check your spam folder and then get in touch with us — we'll resend it straight away."
+  },
+  {
+    "id": "FAQ-004",
+    "question": "What happens if I'm not home during the collection?",
+    "answer": "If your items are outside and accessible, our crew can still collect them without you being present. Just let us know in advance and make sure the items are clearly marked and easy to reach."
+  },
+  {
+    "id": "FAQ-005",
+    "question": "What if the driver is running late?",
+    "answer": "We do our best to stick to your time window, but traffic and previous jobs can sometimes cause delays. If we're running more than 15 minutes late, we'll send you a text or give you a call to let you know."
+  },
+  {
+    "id": "FAQ-006",
+    "question": "What should I do if items were left behind after a collection?",
+    "answer": "We're sorry to hear that — it shouldn't happen! Please get in touch with us as soon as possible with your order number and details of what was missed, and we'll arrange a return visit at no extra cost."
+  },
+  {
+    "id": "FAQ-007",
+    "question": "What payment methods do you accept?",
+    "answer": "We accept all major credit and debit cards, bank transfers, and cash on the day. Payment is taken once the collection is complete, so you only pay for what we actually take away."
+  },
+  {
+    "id": "FAQ-008",
+    "question": "What items do you collect?",
+    "answer": "We collect most household and office items including furniture, appliances, mattresses, garden waste, and general rubbish. If you're unsure whether we can take something, just ask and we'll let you know."
+  },
+  {
+    "id": "FAQ-009",
+    "question": "Are there any items you cannot collect?",
+    "answer": "We can't collect hazardous waste such as asbestos, chemicals, paint, gas cylinders, or clinical waste. These require specialist disposal — your local council can advise on the correct service for these materials."
+  },
+  {
+    "id": "FAQ-010",
+    "question": "How should I prepare my items for collection?",
+    "answer": "Please make sure all items are accessible and any drawers or cupboards are emptied. If the items are inside, clear a path to the front door so our crew can work safely and efficiently."
+  },
+  {
+    "id": "FAQ-011",
+    "question": "What is your cancellation policy?",
+    "answer": "You can cancel free of charge up to 24 hours before your booked slot. Cancellations made with less than 24 hours' notice may incur a fee of up to 50% of the quoted price to cover the reserved crew and vehicle time."
+  },
+  {
+    "id": "FAQ-012",
+    "question": "Can I get proof of disposal or a waste transfer note?",
+    "answer": "Absolutely. As a licensed waste carrier, we provide a waste transfer note for every collection. You'll receive it by email after the job is done — just let us know if you need an extra copy."
+  },
+  {
+    "id": "FAQ-013",
+    "question": "Do you offer same-day or next-day collections?",
+    "answer": "We do offer same-day and next-day collections subject to availability. These slots fill up quickly, so get in touch as early as possible and we'll do our best to fit you in."
+  },
+  {
+    "id": "FAQ-014",
+    "question": "What if my items are very heavy or bulky and need extra crew?",
+    "answer": "For particularly heavy or awkward items like pianos, hot tubs, or large safes, we may need to send an additional crew member. We'll let you know at the time of booking if an extra charge applies."
+  },
+  {
+    "id": "FAQ-015",
+    "question": "What is your recycling and environmental policy?",
+    "answer": "We're committed to responsible disposal — we recycle or donate up to 80% of what we collect. Items in good condition are sent to charity partners, and the rest is sorted at licensed recycling facilities to minimise landfill."
+  }
+]
