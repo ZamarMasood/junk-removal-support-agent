@@ -82,6 +82,7 @@ function App() {
   }
 
   function handleKeyDown(e) {
+    // Shift+Enter inserts newline, Enter alone sends
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       sendMessage()

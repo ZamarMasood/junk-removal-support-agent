@@ -1,8 +1,11 @@
+const fs = require("fs");
 const path = require("path");
 const dotenv = require("dotenv");
 const { VoyageAIClient } = require("voyageai");
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
+
+const VECTORS_CACHE = path.join(__dirname, "..", "data", "vectors.json");
 
 let voyage;
 
@@ -28,9 +31,17 @@ function cosineSimilarity(a, b) {
 
 async function initRAG() {
   voyage = new VoyageAIClient({ apiKey: process.env.VOYAGE_API_KEY });
-
   console.log("Initialising RAG pipeline...");
 
+  // Check if cache exists
+  if (fs.existsSync(VECTORS_CACHE)) {
+    const cached = JSON.parse(fs.readFileSync(VECTORS_CACHE, "utf8"));
+    cached.forEach((entry) => vectorStore.push(entry));
+    console.log(`RAG ready. Loaded ${vectorStore.length} FAQs from cache.`);
+    return;
+  }
+
+  // No cache — embed all FAQs
   const faqs = require(path.join(__dirname, "..", "data", "faqs.json"));
 
   for (let i = 0; i < faqs.length; i++) {
@@ -53,7 +64,9 @@ async function initRAG() {
     }
   }
 
-  console.log(`RAG ready. ${vectorStore.length} FAQs embedded.`);
+  // Save to cache
+  fs.writeFileSync(VECTORS_CACHE, JSON.stringify(vectorStore, null, 2));
+  console.log(`RAG ready. ${vectorStore.length} FAQs embedded and cached.`);
 }
 
 async function searchFAQ(query) {

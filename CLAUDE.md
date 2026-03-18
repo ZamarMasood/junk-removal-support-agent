@@ -9,7 +9,7 @@ AI-powered customer support agent for a UK-based junk removal business called Cl
 - **Frontend:** React + Vite (JavaScript, no TypeScript), plain CSS
 - **Backend:** Node.js + Express
 - **AI Model:** Anthropic Claude API (`claude-sonnet-4-5-20250929`) with tool use
-- **Embeddings:** Voyage AI `voyage-3-lite` (`voyageai` npm package)
+- **Embeddings:** Voyage AI `voyage-3-lite` (`voyageai` npm package) with vector caching to `backend/data/vectors.json`
 - **Logging:** JSONL append-only file (`backend/logs/conversations.jsonl`)
 - **Mock data:** JSON files (no real database)
 
@@ -28,7 +28,8 @@ AI-powered customer support agent for a UK-based junk removal business called Cl
 │   │   └── rag.test.js        # Plain Node test script for RAG
 │   ├── data/
 │   │   ├── orders.json        # Mock customer orders
-│   │   └── faqs.json          # FAQ knowledge base
+│   │   ├── faqs.json          # FAQ knowledge base
+│   │   └── vectors.json       # Auto-generated vector cache (gitignored)
 │   └── logs/
 │       └── conversations.jsonl  # Append-only conversation log (created at runtime)
 ├── .env                       # Secret keys — gitignored
@@ -53,6 +54,7 @@ AI-powered customer support agent for a UK-based junk removal business called Cl
 6. **CORS:** Backend must allow requests from `http://localhost:5173`.
 7. **Escalation tag:** When Claude needs to escalate, it appends `[ESCALATE: reason]` on a new line. The server parses this tag, sets `escalated: true`, and includes `escalationReason` in the response to the frontend.
 8. **Model string:** Always `claude-sonnet-4-5-20250929`. Never change this.
+9. **Vector cache:** FAQ vectors are persisted to `backend/data/vectors.json` after the first embed run. If `vectors.json` exists at startup, RAG loads from it instantly and skips all API calls. If you update `faqs.json`, delete `vectors.json` and restart the server to force a re-embed.
 
 ## Commands
 ```bash
@@ -71,6 +73,11 @@ cd frontend && npm run dev
 
 # Test RAG pipeline in isolation
 cd backend && node src/rag.test.js
+
+# Force re-embed (run after updating faqs.json)
+del backend\data\vectors.json    # Windows
+rm backend/data/vectors.json     # Mac/Linux
+cd backend && npm run dev        # Then restart server
 ```
 
 ## Environment Variables

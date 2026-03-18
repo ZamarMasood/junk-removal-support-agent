@@ -1,10 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600&display=swap');
 
 :root {
-  --charcoal: #1c1f26;
+  --navy: #1c1f26;
+  --charcoal: var(--navy);
   --charcoal-mid: #282c35;
   --charcoal-light: #363b47;
-  --amber: #e8a838;
+  --accent: #e8a838;
+  --amber: var(--accent);
   --amber-glow: #f5c05c;
   --amber-deep: #c8882a;
   --cream: #faf8f5;
@@ -225,7 +227,7 @@ body {
 .message-row {
   display: flex;
   flex-direction: column;
-  animation: messageSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: messageIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .message-row.same-sender {
@@ -240,7 +242,7 @@ body {
   align-items: flex-start;
 }
 
-@keyframes messageSlide {
+@keyframes messageIn {
   from {
     opacity: 0;
     transform: translateY(10px);
@@ -381,7 +383,7 @@ body {
   padding: 10px 14px;
   margin: 6px 0 2px 36px;
   max-width: 75%;
-  animation: messageSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: messageIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .escalation-icon {
@@ -506,7 +508,7 @@ body {
 
 /* ── Mobile ── */
 
-@media (max-width: 580px) {
+@media (max-width: 480px) {
   .header {
     padding: 14px 16px;
   }

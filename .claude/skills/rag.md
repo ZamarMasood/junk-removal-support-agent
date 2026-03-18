@@ -84,3 +84,25 @@ async function search(query, store, topK = 1) {
 - **Return the top match.** The `search` function returns the highest-scoring FAQ entry.
 - **No external database.** Vectors live in a plain JavaScript array. This is sufficient for a small FAQ set (< 1000 entries).
 - **Never hardcode the API key.** Use `VOYAGE_API_KEY` from `.env`.
+
+## Vector Caching
+
+To avoid re-embedding on every server restart, vectors are persisted
+to backend/data/vectors.json after the first embed run.
+
+### How it works
+- First startup: embeds all FAQs via Voyage AI, saves to vectors.json
+- Subsequent startups: loads vectors.json instantly, skips API calls
+- Startup time: ~6 minutes first time, ~2 seconds every time after
+
+### When to invalidate the cache
+Delete vectors.json and restart whenever you:
+- Add a new FAQ to faqs.json
+- Edit an existing FAQ question (answer changes are fine without re-embed
+  only if you also update vectors.json manually, but safest to re-embed)
+- Remove a FAQ from faqs.json
+
+### Cache file location
+  backend/data/vectors.json
+
+This file is gitignored — never commit it to the repository.
