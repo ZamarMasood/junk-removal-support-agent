@@ -1,6 +1,5 @@
-const fs = require("fs");
-const path = require("path");
 const { searchFAQ } = require("./rag");
+const supabase = require("./supabaseClient");
 
 const toolDefinitions = [
   {
@@ -46,16 +45,35 @@ function normalizePhone(raw) {
 
 async function runTool(toolName, toolInput) {
   if (toolName === "lookup_order") {
-    const ordersPath = path.join(__dirname, "..", "data", "orders.json");
-    const orders = JSON.parse(fs.readFileSync(ordersPath, "utf-8"));
     const inputPhone = normalizePhone(toolInput.phone);
+
+    const { data: orders, error } = await supabase
+      .from("orders")
+      .select("*");
+
+    if (error) {
+      return JSON.stringify({ error: "Failed to look up orders: " + error.message });
+    }
 
     const order = orders.find(
       (o) => normalizePhone(o.phone) === inputPhone
     );
 
     if (order) {
-      return JSON.stringify(order);
+      // Map snake_case back to camelCase for the AI prompt
+      return JSON.stringify({
+        id: order.id,
+        customerName: order.customer_name,
+        phone: order.phone,
+        collectionDate: order.collection_date,
+        timeWindow: order.time_window,
+        status: order.status,
+        items: order.items,
+        wasteLocation: order.waste_location,
+        floorNumber: order.floor_number,
+        hasLift: order.has_lift,
+        notes: order.notes,
+      });
     }
     return JSON.stringify({
       error:

@@ -9,9 +9,9 @@ AI-powered customer support agent for a UK-based junk removal business called Cl
 - **Frontend:** React + Vite (JavaScript, no TypeScript), plain CSS
 - **Backend:** Node.js + Express
 - **AI Model:** Anthropic Claude API (`claude-sonnet-4-5-20250929`) with tool use
-- **Embeddings:** Voyage AI `voyage-3-lite` (`voyageai` npm package) with vector caching to `backend/data/vectors.json`
-- **Logging:** JSONL append-only file (`backend/logs/conversations.jsonl`)
-- **Mock data:** JSON files (no real database)
+- **Embeddings:** Voyage AI `voyage-3-lite` (`voyageai` npm package)
+- **Database:** Supabase (PostgreSQL) — orders, conversations, and FAQ vectors (pgvector)
+- **Supabase client:** `@supabase/supabase-js` with service role key
 
 ## Folder Structure
 ```
@@ -22,16 +22,17 @@ AI-powered customer support agent for a UK-based junk removal business called Cl
 ├── backend/                   # Express API server (port 3001)
 │   ├── src/
 │   │   ├── server.js          # Express app, CORS, POST /chat route, session Map, tool loop
-│   │   ├── rag.js             # RAG pipeline: embed FAQs, cosine search
-│   │   ├── tools.js           # Anthropic tool definitions + runTool() function
+│   │   ├── rag.js             # RAG pipeline: embed FAQs, Supabase vector search
+│   │   ├── tools.js           # Anthropic tool definitions + runTool() (reads orders from Supabase)
+│   │   ├── supabaseClient.js  # Shared Supabase client instance
 │   │   ├── systemPrompt.js    # Exported system prompt string
+│   │   ├── seed.js            # Re-embed and upsert FAQs into Supabase
 │   │   └── rag.test.js        # Plain Node test script for RAG
+│   ├── supabase/
+│   │   └── migration.sql      # SQL: all tables, indexes, RLS policies, match function
 │   ├── data/
-│   │   ├── orders.json        # Mock customer orders
-│   │   ├── faqs.json          # FAQ knowledge base
-│   │   └── vectors.json       # Auto-generated vector cache (gitignored)
-│   └── logs/
-│       └── conversations.jsonl  # Append-only conversation log (created at runtime)
+│   │   ├── orders.json        # Seed data for orders (source of truth for initial load)
+│   │   └── faqs.json          # FAQ knowledge base (source of truth for embeddings)
 ├── .env                       # Secret keys — gitignored
 ├── .env.example               # Template with empty values
 ├── CLAUDE.md                  # This file
@@ -50,11 +51,11 @@ AI-powered customer support agent for a UK-based junk removal business called Cl
 2. **Session identity:** Each browser session gets a UUID (`sessionId`) generated on page load. The backend stores conversation history in an in-memory `Map` keyed by `sessionId`. Phone number is collected during the conversation and stored separately — it is NOT the session key.
 3. **Maintain full conversation history per session.** Every message (user, assistant, and tool results) must be kept in the messages array for the session and passed to Claude on every API call.
 4. **Tool use loop:** After calling Claude, check `stop_reason`. If `"tool_use"`, execute all tool_use blocks, append results as a user message, and call Claude again. Repeat until `stop_reason === "end_turn"`.
-5. **JSONL logging:** Log once per completed turn — after the tool loop finishes and the final reply is ready. One JSON line per turn. Never log during the loop.
+5. **Conversation logging:** Log once per completed turn to the Supabase `conversations` table — after the tool loop finishes and the final reply is ready. One row per turn. Never log during the loop.
 6. **CORS:** Backend must allow requests from `http://localhost:5173`.
 7. **Escalation tag:** When Claude needs to escalate, it appends `[ESCALATE: reason]` on a new line. The server parses this tag, sets `escalated: true`, and includes `escalationReason` in the response to the frontend.
 8. **Model string:** Always `claude-sonnet-4-5-20250929`. Never change this.
-9. **Vector cache:** FAQ vectors are persisted to `backend/data/vectors.json` after the first embed run. If `vectors.json` exists at startup, RAG loads from it instantly and skips all API calls. If you update `faqs.json`, delete `vectors.json` and restart the server to force a re-embed.
+9. **Vector store (Supabase):** FAQ vectors are stored in a Supabase pgvector table (`faq_embeddings`). On startup, `initRAG` checks if the table is populated; if empty, it embeds and inserts all FAQs automatically. To re-embed after updating `faqs.json`, run `cd backend && npm run seed`.
 
 ## Commands
 ```bash
@@ -75,9 +76,7 @@ cd frontend && npm run dev
 cd backend && node src/rag.test.js
 
 # Force re-embed (run after updating faqs.json)
-del backend\data\vectors.json    # Windows
-rm backend/data/vectors.json     # Mac/Linux
-cd backend && npm run dev        # Then restart server
+cd backend && npm run seed
 ```
 
 ## Environment Variables
@@ -85,4 +84,6 @@ cd backend && npm run dev        # Then restart server
 ANTHROPIC_API_KEY=your_key_here
 VOYAGE_API_KEY=your_key_here
 PORT=3001
+SUPABASE_URL=your_supabase_url_here
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key_here
 ```

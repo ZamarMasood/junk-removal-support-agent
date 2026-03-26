@@ -1,15 +1,11 @@
-const fs = require("fs");
 const path = require("path");
 const dotenv = require("dotenv");
 const { VoyageAIClient } = require("voyageai");
+const supabase = require("./supabaseClient");
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
-const VECTORS_CACHE = path.join(__dirname, "..", "data", "vectors.json");
-
 let voyage;
-
-const vectorStore = [];
 
 async function embed(text) {
   const response = await voyage.embed({
@@ -19,75 +15,85 @@ async function embed(text) {
   return response.data[0].embedding;
 }
 
-function cosineSimilarity(a, b) {
-  let dot = 0, normA = 0, normB = 0;
-  for (let i = 0; i < a.length; i++) {
-    dot += a[i] * b[i];
-    normA += a[i] * a[i];
-    normB += b[i] * b[i];
-  }
-  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
-}
-
 async function initRAG() {
   voyage = new VoyageAIClient({ apiKey: process.env.VOYAGE_API_KEY });
+
   console.log("Initialising RAG pipeline...");
 
-  // Check if cache exists
-  if (fs.existsSync(VECTORS_CACHE)) {
-    const cached = JSON.parse(fs.readFileSync(VECTORS_CACHE, "utf8"));
-    cached.forEach((entry) => vectorStore.push(entry));
-    console.log(`RAG ready. Loaded ${vectorStore.length} FAQs from cache.`);
+  // Check if FAQs are already in Supabase
+  const { count, error: countError } = await supabase
+    .from("faq_embeddings")
+    .select("*", { count: "exact", head: true });
+
+  if (countError) {
+    console.error("Supabase connection error:", countError.message);
+    throw countError;
+  }
+
+  if (count > 0) {
+    console.log(`RAG ready. ${count} FAQs loaded from Supabase.`);
     return;
   }
 
-  // No cache — embed all FAQs
+  // No data in Supabase — embed all FAQs and insert
+  console.log("No FAQs found in Supabase. Embedding and inserting...");
   const faqs = require(path.join(__dirname, "..", "data", "faqs.json"));
 
   for (let i = 0; i < faqs.length; i++) {
     const faq = faqs[i];
-    const label = faq.question.length > 40
-      ? faq.question.slice(0, 40) + "..."
-      : faq.question;
+    const label =
+      faq.question.length > 40
+        ? faq.question.slice(0, 40) + "..."
+        : faq.question;
     console.log(`[${i + 1}/${faqs.length}] Embedding: ${label}`);
 
     const vector = await embed(faq.question);
-    vectorStore.push({
+
+    const { error } = await supabase.from("faq_embeddings").insert({
       id: faq.id,
       question: faq.question,
       answer: faq.answer,
-      vector,
+      embedding: JSON.stringify(vector),
     });
+
+    if (error) {
+      console.error(`Error inserting ${faq.id}:`, error.message);
+    }
 
     if (i < faqs.length - 1) {
       await new Promise((r) => setTimeout(r, 25000));
     }
   }
 
-  // Save to cache
-  fs.writeFileSync(VECTORS_CACHE, JSON.stringify(vectorStore, null, 2));
-  console.log(`RAG ready. ${vectorStore.length} FAQs embedded and cached.`);
+  console.log(
+    `RAG ready. ${faqs.length} FAQs embedded and stored in Supabase.`
+  );
 }
 
 async function searchFAQ(query) {
   const queryVector = await embed(query);
 
-  let best = null;
-  let bestScore = -Infinity;
+  const { data, error } = await supabase.rpc("match_faqs", {
+    query_embedding: JSON.stringify(queryVector),
+    match_threshold: 0.0,
+    match_count: 1,
+  });
 
-  for (const entry of vectorStore) {
-    const score = cosineSimilarity(queryVector, entry.vector);
-    if (score > bestScore) {
-      bestScore = score;
-      best = entry;
-    }
+  if (error) {
+    console.error("Supabase search error:", error.message);
+    throw error;
   }
 
+  if (!data || data.length === 0) {
+    throw new Error("No FAQ match found");
+  }
+
+  const best = data[0];
   return {
     id: best.id,
     question: best.question,
     answer: best.answer,
-    similarity: bestScore,
+    similarity: best.similarity,
   };
 }
 

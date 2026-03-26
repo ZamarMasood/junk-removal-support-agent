@@ -2,12 +2,11 @@ require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env'
 
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
-const fs = require('fs');
 const Anthropic = require('@anthropic-ai/sdk');
 const { initRAG } = require('./rag');
 const { toolDefinitions, runTool } = require('./tools');
 const { systemPrompt } = require('./systemPrompt');
+const supabase = require('./supabaseClient');
 
 const app = express();
 app.use(express.json());
@@ -25,21 +24,19 @@ function getSession(sessionId) {
 }
 
 // --- LOGGING ---
-function logTurn({ sessionId, phoneNumber, userMessage, agentReply, escalated, escalationReason, messages }) {
-  const logDir = path.join(__dirname, '..', 'logs');
-  fs.mkdirSync(logDir, { recursive: true });
-  const logFile = path.join(logDir, 'conversations.jsonl');
-  const entry = {
+async function logTurn({ sessionId, phoneNumber, userMessage, agentReply, escalated, escalationReason, messages }) {
+  const { error } = await supabase.from('conversations').insert({
     session_id: sessionId,
-    timestamp: new Date().toISOString(),
     phone_number: phoneNumber || null,
     user_message: userMessage,
     agent_reply: agentReply,
     escalated: escalated || false,
     escalation_reason: escalationReason || null,
     messages: messages
-  };
-  fs.appendFileSync(logFile, JSON.stringify(entry) + '\n');
+  });
+  if (error) {
+    console.error('Failed to log conversation:', error.message);
+  }
 }
 
 // --- ROUTES ---
@@ -117,7 +114,7 @@ app.post('/chat', async (req, res) => {
     }
 
     // Log the turn
-    logTurn({
+    await logTurn({
       sessionId,
       phoneNumber: session.phoneNumber,
       userMessage,
