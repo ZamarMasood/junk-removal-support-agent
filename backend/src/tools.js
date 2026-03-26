@@ -49,15 +49,14 @@ async function runTool(toolName, toolInput) {
 
     const { data: orders, error } = await supabase
       .from("orders")
-      .select("*");
+      .select("*")
+      .eq("phone", inputPhone);
 
     if (error) {
       return JSON.stringify({ error: "Failed to look up orders: " + error.message });
     }
 
-    const order = orders.find(
-      (o) => normalizePhone(o.phone) === inputPhone
-    );
+    const order = orders[0];
 
     if (order) {
       // Map snake_case back to camelCase for the AI prompt

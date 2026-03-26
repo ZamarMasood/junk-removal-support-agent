@@ -9,19 +9,33 @@ const { systemPrompt } = require('./systemPrompt');
 const supabase = require('./supabaseClient');
 
 const app = express();
-app.use(express.json());
+app.disable('x-powered-by');
+app.use(express.json({ limit: '10kb' }));
 app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:5174'], methods: ['GET', 'POST'] }));
 const client = new Anthropic();
 
 // --- SESSION STORE ---
 const sessions = new Map();
+const SESSION_TTL_MS = 60 * 60 * 1000; // 1 hour
 
 function getSession(sessionId) {
   if (!sessions.has(sessionId)) {
-    sessions.set(sessionId, { messages: [], phoneNumber: null });
+    sessions.set(sessionId, { messages: [], phoneNumber: null, lastAccess: Date.now() });
   }
-  return sessions.get(sessionId);
+  const session = sessions.get(sessionId);
+  session.lastAccess = Date.now();
+  return session;
 }
+
+// Clean up stale sessions every 15 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, session] of sessions) {
+    if (now - session.lastAccess > SESSION_TTL_MS) {
+      sessions.delete(id);
+    }
+  }
+}, 15 * 60 * 1000);
 
 // --- LOGGING ---
 async function logTurn({ sessionId, phoneNumber, userMessage, agentReply, escalated, escalationReason, messages }) {
@@ -113,6 +127,9 @@ app.post('/chat', async (req, res) => {
       if (match) escalationReason = match[1].trim();
     }
 
+    // Strip escalation tag from user-facing reply
+    const cleanReply = finalText.replace(/\n?\[ESCALATE:\s*.+?\]/g, '').trim();
+
     // Log the turn
     await logTurn({
       sessionId,
@@ -124,7 +141,7 @@ app.post('/chat', async (req, res) => {
       messages: session.messages
     });
 
-    res.json({ reply: finalText, escalated, escalationReason, sessionId });
+    res.json({ reply: cleanReply, escalated, escalationReason, sessionId });
   } catch (err) {
     console.error('Chat error:', err);
     return res.status(500).json({ error: 'Something went wrong', details: err.message });
